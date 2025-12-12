@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<link rel="stylesheet" href="https://kupiprodai.ru/styles/style_new.css?01122025" type="text/css">
+    <link rel="stylesheet" href="https://kupiprodai.ru/styles/jquery-ui.min.css" type="text/css">
+	<link rel="icon" href="https://kupiprodai.ru/favicon-120x120.png" sizes="120x120" type="image/png">
+	<link rel="icon" href="https://kupiprodai.ru/favicon-32x32.png" sizes="32x32" type="image/png">
+	<link rel="shortcut icon" href="https://kupiprodai.ru/favicon.ico" type="image/x-icon">
+	<link rel="yandex-tableau-widget" href="https://kupiprodai.ru/yandex-tableau-manifest.json">
+	<title>Все сервисы</title>
+	<meta name="keywords" content=''>
+	<meta name="description" content=''>
+    <script src="https://kupiprodai.ru/js/jquery-1.8.2.min.js"></script>
+    <script src="https://kupiprodai.ru/js/jquery-ui.min.js"></script>
+    <script src="https://kupiprodai.ru/js/params_data.js?01122025"></script>
+    <script src="https://kupiprodai.ru/js/params_core.js?01122025"></script>
+    <script src="https://kupiprodai.ru/js/metro_array.js?01122025"></script>
+    <script src="https://kupiprodai.ru/js/metro_core.js?01122025"></script>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+</head>
+<body>
+	<header>
+		<div class="content_center relative box-sizing">
+			<div class="top">
+	<a href="https://kupiprodai.ru/"><img class="logo" src="https://kupiprodai.ru/images/pc/logo.svg" width="180" height="36" alt="КупиПродай" title="КупиПродай"></a>
+	<div class="region"><a id="cityhref" href="#">По всей Кыргызстане</a></div>
+	<a class="add box-sizing" href="https://kupiprodai.ru/login/">Подать объявление</a>
+	<div class="menu">
+				<a class="menu_link" href="https://kupiprodai.ru/login/">Войти </a>
+			</div>
+</div>
+
+			<script>
+var new_design = true;
+$(function() {
+	$.ajaxSetup({
+        xhrFields: { withCredentials: true }
+    });
+    $("#searchword").autocomplete({
+        source: "https://vip.kupiprodai.ru/api/getsearchhints/?params="+ btoa($("input[name='cityid']").val()+':'+$("#metro_id").val()+':'+$("input[name='personal']").val()+':'+$("input[name='search_price_from']").val()+':'+$("input[name='search_price_to']").val()),
+        minLength: 0,
+        select: function( event, ui ) {
+            if (ui.item.sUrl != '') location.href = ui.item.sUrl;
+            else $("#searchword").val(ui.item.sLabel);
+            return false;
+        }
+    }).autocomplete( "instance" )._renderItem = function( ul, item ) {
+        var text = "<div>" + item.sLabel;
+        if (item.mLabel != '') text += "<span>" + item.mLabel + "</span>";
+        text += '</div>';
+        return $( "<li>" )
+            .append( text )
+            .appendTo( ul );
+    };
+    $("#searchword").click(function() {
+        if ($(this).val().length == 0) {
+            $(this).autocomplete("search");
+        }
+    });
+
+	$("#cityhref").click(function() {
+		$(".region_block").show();
+		if ($("#citysel").val().length == 0) {
+			$("#citysel").autocomplete("search");
+		}
+		return false;
+	});
+
+	$("#citysel").autocomplete({
+		source: "/getcitys.php?links=1",
+		minLength: 0,
+		search: function(event, ui) {
+			$('#citys-output ul').empty();
+		}
+	}).autocomplete( "instance" )._renderItem = function(ul, item) {
+		return $('<li>')
+				.data('item.autocomplete', item)
+				.append(item.value.replace("(", "<br> <span>").replace(")", "</span>"))
+				.appendTo($('#citys-output ul'));
+	};
+	$("#citysel").click(function() {
+		$(this).val("");
+		if ($(this).val().length == 0) {
+			$(this).autocomplete("search");
+		}
+	});
+
+	$('#citysel_close').click(function () {
+		$('#citys-output ul').empty();
+		$(".region_block").hide();
+
+		return false;
+	});
+
+	if (typeof $.getScripts === 'undefined') {
+		var scripts = [];
+		$.getScripts = function (files) {
+			var queue = $.Deferred().resolve();
+			$.each(files, function (i, src) {
+				if ($.inArray(src, scripts) == -1) {
+					scripts.push(src);
+					queue = queue.pipe(function () {
+						return $.getScripts[src] || ($.getScripts[src] = $.getScript(src));
+					});
+				}
+			});
+			return queue;
+		};
+	}
+
+	var spodrazdely = [];
+	$.getJSON("https://vip.kupiprodai.ru/api/getpodrazdely/", function(data) { spodrazdely = data; });
+	$('#razdel_id_choose').on('change', function() {
+		var razdel_id = this.value;
+		$("#cat_id").empty();
+		if (razdel_id != -1) {
+			var text = "Выберите подкатегорию";
+			var o = new Option(text, razdel_id + '_' + 0);
+			$(o).html(text);
+			$("#cat_id").append(o);
+			$.each(spodrazdely[this.value], function (i, item) {
+				var o = new Option(item.name, razdel_id + '_' + item.id);
+				$(o).html(item.name);
+				$("#cat_id").append(o);
+			});
+			$("#cat_id").change();
+			$("#cat_id_block").show();
+		} else {
+			$("#cat_id_block").hide();
+			$("#params").hide();
+		}
+	});
+
+    show_metro(0,0);
+	$('#params').on('change', 'select,input:text', function() {
+		$('#searchformconfirm').show();
+	});
+});
+</script>
+
+
+<form method="post" id="searchform" action="https://kupiprodai.ru/search/">
+	<div class="hideit region_block" id="citys-output">
+		<input class="input margin_bottom_15 box-sizing ui-autocomplete-input" id="citysel" type="text" name="city" placeholder="Регион или город" value="" autocomplete="off">
+		<a class="modal_block_close" id="citysel_close" href="#"></a>
+		<ul class="citysel-ul"></ul>
+	</div>
+	<div class="search">
+		<div class="search_select">
+			<select class="select" name="razdel_id_choose" id="razdel_id_choose">
+				<option data-id="-1" value="-1" >Во всех категориях</option>
+									<option value="1" >Транспорт</option>
+									<option value="9" >Недвижимость</option>
+									<option value="16" >Личные вещи</option>
+									<option value="19" >Электроника, техника</option>
+									<option value="27" >Дом и сад, мебель, бытовое</option>
+									<option value="31" >Текстиль</option>
+									<option value="42" >Животные</option>
+									<option value="51" >Услуги и предложения</option>
+									<option value="59" >Работа</option>
+									<option value="75" >Хобби, Отдых, Спорт</option>
+									<option value="331" >Оборудование</option>
+									<option value="342" >Сырье</option>
+									<option value="351" >Строительные товары и услуги</option>
+									<option value="359" >Продукты питания</option>
+							</select>	
+		</div>
+		<div class="search_select " id="cat_id_block">
+			<select class="select" name="cat_id" id="cat_id">
+																																																																																																																																																																										</select>
+		</div>
+		<div class="search_form">
+			<input class="searching box-sizing" placeholder="Поиск в Кыргызстане" id="searchword" type="text" size="25" name="searching" value="" autocomplete="off">
+					</div>
+		<div class="search_button">
+			<input type="hidden" id="cityid" name="cityid" value="-0">
+			<input type="hidden" name="personal" value="-1">
+			<input type="submit" id="searchSub" value="Найти">
+		</div>
+	</div>
+
+	<fieldset class="search_params font_size_0 box-sizing" id="params" style="display: none;">
+		<span class="title26 block margin_bottom_20">Параметры поиска</span>
+		
+				<div class="metro inline_block" style="display: none;" id="metrodiv">
+			<select class="select search_params_standart" id="metro_id" name="metro_id"></select>
+		</div>
+		<div id="searchformconfirm" class="hideit">
+			<input type="button" value="Применить параметры" onclick="$('#searchSub').click();">
+		</div>
+	</fieldset>
+</form>
+		</div>
+	</header>
+
+	<main>
+		<div class="content_center content box-sizing">
+			<div class="title26 block margin_bottom_30"><a class="title26" href="https://kupiprodai.ru/">Доска объявлений</a> &middot; Все сервисы</div>
+
+			<div class="all_serv font_size_0 margin_bottom_50">
+				<a href="https://kupiprodai.ru/login/" style="background-image:url(/images/pc/all_serv/banner_add_bg.jpg);"><span>Подать <br>объявление</span></a>
+				<a href="https://kupiprodai.ru/help#up" style="background-image:url(/images/pc/all_serv/banner_up_bg.jpg);"><span>Поднять объявление <br>бесплатно</span></a>
+				<a href="https://vip.kupiprodai.ru/upauto/" class="margin_right_none" style="background-image:url(/images/pc/all_serv/banner_upauto_bg.jpg);"><span>Автоподнятие <br>объявления</span></a>
+
+				<a href="https://vip.kupiprodai.ru/place/" class="banner_long" style="background-image:url(/images/pc/all_serv/banner_send_bg.jpg);"><span>Разослать <br>объявление</span></a>
+				<a href="https://vip.kupiprodai.ru/addsite/" class="margin_right_none" style="background-image:url(/images/pc/all_serv/banner_link_bg.jpg);"><span><br>Привязать сайт</span></a>
+				
+				<a href="https://kupiprodai.ru/shops/" style="background-image:url(/images/pc/all_serv/banner_shops_bg.jpg);"><span><br>Магазины</span></a>
+				<a href="https://vip.kupiprodai.ru/info/business/" class="banner_long margin_right_none" style="background-image:url(/images/pc/all_serv/banner_business_bg.jpg);"><span>КупиПродай <br>для бизнеса</span></a>
+
+				<a href="https://vip.kupiprodai.ru/xml/" style="background-image:url(/images/pc/all_serv/banner_xmlupload_bg.gif);"><span><br>Загрузить XML</span></a>
+				<a href="https://vip.kupiprodai.ru/xml_export/" style="background-image:url(/images/pc/all_serv/banner_xmldownload_bg.gif);"><span><br>Выгрузить XML</span></a>
+				<a href="https://vip.kupiprodai.ru/more/free/" class="margin_right_none" style="background-image:url(/images/pc/all_serv/banner_free_bg.gif);"><span>Бесплатно <br>разместить баннер</span></a>
+
+				<a href="https://vip.kupiprodai.ru/myshop/" style="background-image:url(/images/pc/all_serv/banner_shop_bg.jpg);"><span>Создать <br>магазин</span></a>
+				<a href="https://vip.kupiprodai.ru/newsite/" class="banner_long margin_right_none" style="background-image:url(/images/pc/all_serv/banner_yag_bg.jpg);"><span>Объявление <br>в Яндекс, Гугл</span></a>
+
+				<a href="https://vip.kupiprodai.ru/profsite/" style="background-image:url(/images/pc/all_serv/banner_site_bg.jpg);"><span><br>Создать сайт</span></a>
+				<a href="https://vip.kupiprodai.ru/newpartner/" style="background-image:url(/images/pc/all_serv/banner_partner_bg.jpg);"><span>Получите <br>бонусы и доход</span></a>
+				<a href="https://kupiprodai.ru/help" class="margin_right_none" style="background-image:url(/images/pc/all_serv/banner_help_bg.jpg);"><span><br>Помощь</span></a>
+				
+				<a href="https://vip.kupiprodai.ru/profsitedemo/" class="banner_full margin_right_none" style="background-image:url(/images/pc/all_serv/banner_gift_bg.jpg);"><span>Вам подарок!
+				<br>Сайт готов!</span></a>
+			</div>	
+		</div>
+	</main>
+
+	<footer>
+	<div class="content_center box-sizing">
+		<div class="footer_menu">
+			<a href="https://kupiprodai.ru/">Доска объявлений</a>
+			<a href="https://kupiprodai.ru/login/">Подать объявление</a>
+			<a href="https://kupiprodai.ru/login/">Личный кабинет</a>
+			<a href="https://kupiprodai.ru/all">Все сервисы</a> 
+			<a href="https://kupiprodai.ru/shops">Магазины</a>
+			<a href="https://vip.kupiprodai.ru/info/terms/">Правила</a>
+			<a href="https://vip.kupiprodai.ru/contact/">Контакты</a>
+			<a href="https://kupiprodai.ru/mobile/1/">Мобильная версия</a>
+		</div>
+		<div class="footer_info">
+			Сайт бесплатных объявлений © КупиПродай. Помогает купить или продать! <a href="https://vip.kupiprodai.ru/info/terms/">Пользовательское соглашение</a>.<br>
+			+996 777 227 776 - +996 507 331 603 (отдел по работе с клиентами, с 10:00 до 19:00), <a href="https://vip.kupiprodai.ru/contact/">обратиться в поддержку</a>.
+			
+				
+		</div>
+		<div class="footer_app font_size_0">
+			<a target="_blank" href=""><img src="https://kupiprodai.ru/images/pc/google_play_badge.svg" width="120" height="40" alt="" title=
+			<a target="_blank" href="><img src="https://kupiprodai.ru/images/pc/app_store_badge.svg" width="120" height="40" alt="App Store" title="App Store"></a>
+		</div>
+	</div>
+</footer>
+
+
+<script type="text/javascript" >
+   (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+   m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+   (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+   ym(24267385, "init", {
+        clickmap:true,
+        trackLinks:true,
+        accurateTrackBounce:true
+   });
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/24267385" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+
+
+
+</body>
+</html>
